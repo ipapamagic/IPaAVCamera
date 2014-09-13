@@ -31,7 +31,6 @@
     UIBackgroundTaskIdentifier backgroundRecordingID;
 
 }
-@synthesize delegate;
 
 -(id)init
 {
@@ -54,7 +53,7 @@
     NSError *error;
     videoInput = [[AVCaptureDeviceInput alloc] initWithDevice:[self cameraWithPosition:devicePosition] error:&error];
     if (error != nil) {
-        if ([self.delegate respondsToSelector:@selector(IPaAVCamController:didFailWithError:)])
+        if ([self.delegate respondsToSelector:@selector(onIPaAVCamController:didFailWithError:)])
         {
             NSString *localizedDescription = @"Video Input init error";
             NSString *localizedFailureReason = @"Can not initial video input.";
@@ -64,13 +63,18 @@
                                        nil];
             NSError *noVideoError = [NSError errorWithDomain:@"AVCam" code:0 userInfo:errorDict];
             
-            [self.delegate IPaAVCamController:self didFailWithError:noVideoError];
+            [self.delegate onIPaAVCamController:self didFailWithError:noVideoError];
         }
     }
     if([session canAddInput:videoInput]){
         [session addInput:videoInput];
     }
     return self;
+}
+- (void)setPreviewLayerConnectionEnable:(BOOL)enable
+{
+    previewLayer.connection.enabled = enable;
+    
 }
 - (void)setPreviewView:(UIView*) view
 {
@@ -180,7 +184,7 @@
     
 	// Send an error to the delegate if video recording is unavailable
 	if (![videoConnection isActive] && [audioConnection isActive]) {
-        if ([self.delegate respondsToSelector:@selector(IPaAVCamController:didFailWithError:)])
+        if ([self.delegate respondsToSelector:@selector(onIPaAVCamController:didFailWithError:)])
         {
             NSString *localizedDescription = @"Video recording unavailable";
             NSString *localizedFailureReason = @"Movies recorded on this device will only contain audio. They will be accessible through iTunes file sharing.";
@@ -190,7 +194,7 @@
                                        nil];
             NSError *noVideoError = [NSError errorWithDomain:@"AVCam" code:0 userInfo:errorDict];
             
-            [self.delegate IPaAVCamController:self didFailWithError:noVideoError];
+            [self.delegate onIPaAVCamController:self didFailWithError:noVideoError];
         }
 	}
     //start running
@@ -212,8 +216,8 @@
     if ([fileManager fileExistsAtPath:filePath]) {
         NSError *error;
         if ([fileManager removeItemAtPath:filePath error:&error] == NO) {
-            if ([self.delegate respondsToSelector:@selector(IPaAVCamController:didFailWithError:)]) {
-                [self.delegate IPaAVCamController:self didFailWithError:error];
+            if ([self.delegate respondsToSelector:@selector(onIPaAVCamController:didFailWithError:)]) {
+                [self.delegate onIPaAVCamController:self didFailWithError:error];
             }
         }
     }
@@ -240,8 +244,8 @@
             if (imageDataSampleBuffer != NULL) {
                 NSData *imageData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:imageDataSampleBuffer];
                 UIImage *image = [[UIImage alloc] initWithData:imageData];
-                if ([self.delegate respondsToSelector:@selector(IPaAVCamController:didCaptureImage:)]) {
-                    [self.delegate IPaAVCamController:self didCaptureImage:image];
+                if ([self.delegate respondsToSelector:@selector(onIPaAVCamController:didCaptureImage:)]) {
+                    [self.delegate onIPaAVCamController:self didCaptureImage:image];
                 }
             }
     }];
@@ -277,8 +281,8 @@
             [session commitConfiguration];
 
         } else if (error) {
-            if ([self.delegate respondsToSelector:@selector(IPaAVCamController:didFailWithError:)]) {
-                [self.delegate IPaAVCamController:self didFailWithError:error];
+            if ([self.delegate respondsToSelector:@selector(onIPaAVCamController:didFailWithError:)]) {
+                [self.delegate onIPaAVCamController:self didFailWithError:error];
             }
         }
     }
@@ -318,7 +322,7 @@
 {
     [self setDeviceOnPosition:AVCaptureDevicePositionBack withFlashMode:flashMode];
 }
-- (void) setDeviceOnPosition:(AVCaptureDevicePosition)position withTorchMode:(AVCaptureFlashMode)torchMode
+- (void) setDeviceOnPosition:(AVCaptureDevicePosition)position withTorchMode:(AVCaptureTorchMode)torchMode
 {
     AVCaptureDevice *camera = [self cameraWithPosition:position];
     if ([camera hasTorch]) {
@@ -345,8 +349,8 @@
             [device setFocusMode:AVCaptureFocusModeAutoFocus];
             [device unlockForConfiguration];
         } else {
-            if ([self.delegate respondsToSelector:@selector(IPaAVCamController:didFailWithError:)]) {
-                [self.delegate IPaAVCamController:self didFailWithError:error];
+            if ([self.delegate respondsToSelector:@selector(onIPaAVCamController:didFailWithError:)]) {
+                [self.delegate onIPaAVCamController:self didFailWithError:error];
             }
         }
     }
@@ -364,8 +368,8 @@
 			[device setFocusMode:AVCaptureFocusModeContinuousAutoFocus];
 			[device unlockForConfiguration];
 		} else {
-			if ([self.delegate respondsToSelector:@selector(IPaAVCamController:didFailWithError:)]) {
-                [self.delegate IPaAVCamController:self didFailWithError:error];
+			if ([self.delegate respondsToSelector:@selector(onIPaAVCamController:didFailWithError:)]) {
+                [self.delegate onIPaAVCamController:self didFailWithError:error];
             }
 		}
 	}
@@ -449,8 +453,8 @@
         }
     }
     
-    if ([delegate respondsToSelector:@selector(IPaAVCamControllerDeviceConfigurationChanged:)]) {
-        [delegate IPaAVCamControllerDeviceConfigurationChanged:self];
+    if ([self.delegate respondsToSelector:@selector(onIPaAVCamControllerDeviceConfigurationChanged:)]) {
+        [self.delegate onIPaAVCamControllerDeviceConfigurationChanged:self];
     }
 }
 -(void)onDeviceDisconnected:(NSNotification*)noti
@@ -466,8 +470,8 @@
         videoInput = nil;
     }
     
-    if ([delegate respondsToSelector:@selector(IPaAVCamControllerDeviceConfigurationChanged:)]) {
-        [delegate IPaAVCamControllerDeviceConfigurationChanged:self];
+    if ([self.delegate respondsToSelector:@selector(onIPaAVCamControllerDeviceConfigurationChanged:)]) {
+        [self.delegate onIPaAVCamControllerDeviceConfigurationChanged:self];
     }
 }
 
@@ -495,8 +499,8 @@
         didStartRecordingToOutputFileAtURL:(NSURL *)fileURL
                            fromConnections:(NSArray *)connections
 {
-    if ([self.delegate respondsToSelector:@selector(IPaAVCamControllerRecordingDidBegin:)]) {
-        [self.delegate IPaAVCamControllerRecordingDidBegin:self];
+    if ([self.delegate respondsToSelector:@selector(onIPaAVCamControllerRecordingDidBegin:)]) {
+        [self.delegate onIPaAVCamControllerRecordingDidBegin:self];
     }
 }
 
@@ -505,8 +509,8 @@
                         fromConnections:(NSArray *)connections
                                   error:(NSError *)error
 {
-    if ([self.delegate respondsToSelector:@selector(IPaAVCamController:recordingDidFinishToOutputFileURL:error:)]) {
-        [self.delegate IPaAVCamController:self recordingDidFinishToOutputFileURL:anOutputFileURL error:error];
+    if ([self.delegate respondsToSelector:@selector(onIPaAVCamController:recordingDidFinishToOutputFileURL:error:)]) {
+        [self.delegate onIPaAVCamController:self recordingDidFinishToOutputFileURL:anOutputFileURL error:error];
     }
 }
 @end

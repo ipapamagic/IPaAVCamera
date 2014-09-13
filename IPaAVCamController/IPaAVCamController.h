@@ -25,6 +25,8 @@
 
 - (void)setupCaptureStillImage;
 - (void)setupRecordVideo;
+
+- (void)setPreviewLayerConnectionEnable:(BOOL)enable;
 #pragma mark - Focus
 
 // Perform an auto focus at the specified point. The focus mode will automatically change to locked once the auto focus is complete.
@@ -61,10 +63,10 @@
 
 @protocol IPaAVCamControllerDelegate <NSObject>
 @optional
--(void) IPaAVCamControllerDeviceConfigurationChanged:(IPaAVCamController *)controller;
--(void) IPaAVCamController:(IPaAVCamController*)controller didFailWithError:(NSError *)error;
--(void) IPaAVCamControllerRecordingDidBegin:(IPaAVCamController*)controller;
--(void) IPaAVCamController:(IPaAVCamController*)controller recordingDidFinishToOutputFileURL:(NSURL*)fileURL error:(NSError*)error;
--(void) IPaAVCamController:(IPaAVCamController*)controller didCaptureImage:(UIImage*)image;
+-(void) onIPaAVCamControllerDeviceConfigurationChanged:(IPaAVCamController *)controller;
+-(void) onIPaAVCamController:(IPaAVCamController*)controller didFailWithError:(NSError *)error;
+-(void) onIPaAVCamControllerRecordingDidBegin:(IPaAVCamController*)controller;
+-(void) onIPaAVCamController:(IPaAVCamController*)controller recordingDidFinishToOutputFileURL:(NSURL*)fileURL error:(NSError*)error;
+-(void) onIPaAVCamController:(IPaAVCamController*)controller didCaptureImage:(UIImage*)image;
 
 @end
