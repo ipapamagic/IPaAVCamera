@@ -11,7 +11,6 @@
 		6E18FDE315C2470B00349837 /* IPaAVCamController.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6E18FDE215C2470B00349837 /* IPaAVCamController.h */; };
 		6E18FDE515C2470B00349837 /* IPaAVCamController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6E18FDE415C2470B00349837 /* IPaAVCamController.m */; };
 		6E6B623515C6418E00ECE63B /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E6B623415C6418E00ECE63B /* UIKit.framework */; };
-		6E6B623815C6419200ECE63B /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E6B623715C6419200ECE63B /* AVFoundation.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -34,7 +33,6 @@
 		6E18FDE215C2470B00349837 /* IPaAVCamController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IPaAVCamController.h; sourceTree = "<group>"; };
 		6E18FDE415C2470B00349837 /* IPaAVCamController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = IPaAVCamController.m; sourceTree = "<group>"; };
 		6E6B623415C6418E00ECE63B /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
-		6E6B623715C6419200ECE63B /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -42,7 +40,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6E6B623815C6419200ECE63B /* AVFoundation.framework in Frameworks */,
 				6E6B623515C6418E00ECE63B /* UIKit.framework in Frameworks */,
 				6E18FDDE15C2470B00349837 /* Foundation.framework in Frameworks */,
 			);
@@ -71,7 +68,6 @@
 		6E18FDDC15C2470B00349837 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				6E6B623715C6419200ECE63B /* AVFoundation.framework */,
 				6E6B623415C6418E00ECE63B /* UIKit.framework */,
 				6E18FDDD15C2470B00349837 /* Foundation.framework */,
 			);
@@ -160,6 +156,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
@@ -186,6 +183,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = YES;
