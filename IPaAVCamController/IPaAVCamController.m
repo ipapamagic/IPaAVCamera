@@ -7,8 +7,7 @@
 //
 
 #import "IPaAVCamController.h"
-#import <AssetsLibrary/AssetsLibrary.h>
-
+@import AssetsLibrary;
 
 @interface IPaAVCamController () <AVCaptureFileOutputRecordingDelegate>
 @property (nonatomic,readonly) AVCaptureDevice* frontFacingCamera;
@@ -90,6 +89,7 @@
     
     CGRect bounds = [view bounds];
     [previewLayer setFrame:bounds];
+    
 
     
 //    if (videoConnection.supportsVideoOrientation) {
@@ -104,6 +104,10 @@
     [viewLayer insertSublayer:previewLayer below:[[viewLayer sublayers] objectAtIndex:0]];
     
 
+}
+- (void)setPreviewLayerFrame:(CGRect)rect
+{
+    previewLayer.frame = rect;
 }
 - (UIView*) createPreviewViewWithSize:(CGSize)size;
 {

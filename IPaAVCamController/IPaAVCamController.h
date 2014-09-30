@@ -36,7 +36,7 @@
 #pragma mark - Preview View
 - (UIView*) createPreviewViewWithSize:(CGSize)size;
 - (void)setPreviewView:(UIView*) view;
-
+- (void)setPreviewLayerFrame:(CGRect)rect;
 #pragma mark - Flash and Torch
 
 
