@@ -159,6 +159,10 @@
     }
     [session startRunning];
 }
+- (BOOL)canCaptureStillImage
+{
+    return (videoInput != nil);
+}
 - (void)setupRecordVideo
 {
     [session stopRunning];

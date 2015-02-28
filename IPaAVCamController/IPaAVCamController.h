@@ -27,6 +27,7 @@
 - (void)setupRecordVideo;
 
 - (void)setPreviewLayerConnectionEnable:(BOOL)enable;
+- (BOOL)canCaptureStillImage;
 #pragma mark - Focus
 
 // Perform an auto focus at the specified point. The focus mode will automatically change to locked once the auto focus is complete.
