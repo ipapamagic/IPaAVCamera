@@ -335,14 +335,23 @@
     AVCaptureDevice *camera = [self cameraWithPosition:position];
     if ([camera hasTorch]) {
         if ([camera lockForConfiguration:nil]) {
-            if ([camera isTorchModeSupported:AVCaptureTorchModeAuto]) {
-                [camera setTorchMode:AVCaptureTorchModeAuto];
+            if ([camera isTorchModeSupported:torchMode]) {
+                [camera setTorchMode:torchMode];
             }
             [camera unlockForConfiguration];
         }
     }
 }
-
+- (AVCaptureFlashMode)getBackCameraFlashMode
+{
+    AVCaptureDevice *camera = [self cameraWithPosition:AVCaptureDevicePositionBack];
+    return camera.flashMode;
+}
+- (AVCaptureTorchMode)getBackCameraTorchMode
+{
+    AVCaptureDevice *camera = [self cameraWithPosition:AVCaptureDevicePositionBack];
+    return camera.torchMode;
+}
 -(void) setBackCameraTorchMode:(AVCaptureTorchMode)torchMode
 {
     [self setDeviceOnPosition:AVCaptureDevicePositionBack withTorchMode:torchMode];

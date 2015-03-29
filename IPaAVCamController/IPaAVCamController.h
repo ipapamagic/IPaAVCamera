@@ -39,8 +39,8 @@
 - (void)setPreviewView:(UIView*) view;
 - (void)setPreviewLayerFrame:(CGRect)rect;
 #pragma mark - Flash and Torch
-
-
+- (AVCaptureFlashMode)getBackCameraFlashMode;
+- (AVCaptureTorchMode)getBackCameraTorchMode;
 /** set device flash mode
  @param position device position ,on ios it could only be AVCaptureDevicePositionFront or AVCaptureDevicePositionBack
  @param flashMode flash mode you want to set
