@@ -2,78 +2,18 @@
 //  IPaAVCamController.h
 //  IPaAVCamController
 //
-//  Created by IPaPa on 12/7/27.
-//  Copyright (c) 2012年 IPaPa. All rights reserved.
+//  Created by IPa Chen on 2015/7/9.
+//  Copyright (c) 2015年 A Magic Studio. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
-@import AVFoundation;
-@import UIKit;
-@protocol IPaAVCamControllerDelegate;
-@interface IPaAVCamController : NSObject
-@property (nonatomic,assign) id <IPaAVCamControllerDelegate> delegate;
-@property (nonatomic,readonly) NSUInteger cameraCount;
-@property (nonatomic,readonly) NSUInteger micCount;
-@property (nonatomic,readonly) BOOL isRecording;
-@property (nonatomic,assign) AVCaptureVideoOrientation orientation;
-@property (nonatomic,readonly) AVCaptureVideoPreviewLayer *previewLayer;
--(id)initWithCameraPositoin:(AVCaptureDevicePosition)devicePosition;
-//video
-- (void) startRecording;
-- (void) stopRecording;
-//
-- (void) captureStillImage;
-- (BOOL) toggleCamera;
+#import <UIKit/UIKit.h>
 
-- (void)setupCaptureStillImage;
-- (void)setupRecordVideo;
+//! Project version number for IPaAVCamController.
+FOUNDATION_EXPORT double IPaAVCamControllerVersionNumber;
 
-- (void)setPreviewLayerConnectionEnable:(BOOL)enable;
-- (BOOL)canCaptureStillImage;
+//! Project version string for IPaAVCamController.
+FOUNDATION_EXPORT const unsigned char IPaAVCamControllerVersionString[];
 
-- (void)setOrientationWithDeviceOrientation:(UIDeviceOrientation)deviceOrientation;
+// In this header, you should import all the public headers of your framework using statements like #import <IPaAVCamController/PublicHeader.h>
 
 
-#pragma mark - Focus
-
-// Perform an auto focus at the specified point. The focus mode will automatically change to locked once the auto focus is complete.
-- (void) autoFocusAtPoint:(CGPoint)point;
-// Switch to continuous auto focus mode at the specified point
-- (void) continuousFocusAtPoint:(CGPoint)point;
-#pragma mark - Preview View
-- (UIView*) createPreviewViewWithSize:(CGSize)size;
-- (void)setPreviewView:(UIView*) view;
-- (void)setPreviewLayerFrame:(CGRect)rect;
-#pragma mark - Flash and Torch
-- (AVCaptureFlashMode)getBackCameraFlashMode;
-- (AVCaptureTorchMode)getBackCameraTorchMode;
-/** set device flash mode
- @param position device position ,on ios it could only be AVCaptureDevicePositionFront or AVCaptureDevicePositionBack
- @param flashMode flash mode you want to set
- */
-- (void) setDeviceOnPosition:(AVCaptureDevicePosition)position withFlashMode:(AVCaptureFlashMode)flashMode;
-/** set back camera flash mode
- @param flashMode flash mode you want to set
-*/
--(void) setBackCameraFlashMode:(AVCaptureFlashMode)flashMode;
-/** set device torch mode
- @param position device position ,on ios it could only be AVCaptureDevicePositionFront or AVCaptureDevicePositionBack
- @param torchMode torch mode you want to set
- */
-- (void) setDeviceOnPosition:(AVCaptureDevicePosition)position withTorchMode:(AVCaptureTorchMode)torchMode;
-/** set back camera torch mode
- @param torchMode torch mode you want to set
- */
--(void) setBackCameraTorchMode:(AVCaptureTorchMode)torchMode;
-@end
-
-
-@protocol IPaAVCamControllerDelegate <NSObject>
-@optional
--(void) onIPaAVCamControllerDeviceConfigurationChanged:(IPaAVCamController *)controller;
--(void) onIPaAVCamController:(IPaAVCamController*)controller didFailWithError:(NSError *)error;
--(void) onIPaAVCamControllerRecordingDidBegin:(IPaAVCamController*)controller;
--(void) onIPaAVCamController:(IPaAVCamController*)controller recordingDidFinishToOutputFileURL:(NSURL*)fileURL error:(NSError*)error;
--(void) onIPaAVCamController:(IPaAVCamController*)controller didCaptureImage:(UIImage*)image;
-
-@end
