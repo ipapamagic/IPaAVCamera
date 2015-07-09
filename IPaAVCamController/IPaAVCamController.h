@@ -15,6 +15,8 @@
 @property (nonatomic,readonly) NSUInteger cameraCount;
 @property (nonatomic,readonly) NSUInteger micCount;
 @property (nonatomic,readonly) BOOL isRecording;
+@property (nonatomic,assign) AVCaptureVideoOrientation orientation;
+@property (nonatomic,readonly) AVCaptureVideoPreviewLayer *previewLayer;
 -(id)initWithCameraPositoin:(AVCaptureDevicePosition)devicePosition;
 //video
 - (void) startRecording;
@@ -28,6 +30,10 @@
 
 - (void)setPreviewLayerConnectionEnable:(BOOL)enable;
 - (BOOL)canCaptureStillImage;
+
+- (void)setOrientationWithDeviceOrientation:(UIDeviceOrientation)deviceOrientation;
+
+
 #pragma mark - Focus
 
 // Perform an auto focus at the specified point. The focus mode will automatically change to locked once the auto focus is complete.

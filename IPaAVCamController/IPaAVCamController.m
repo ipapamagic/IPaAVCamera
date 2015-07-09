@@ -17,9 +17,8 @@
 @implementation IPaAVCamController
 {
     AVCaptureSession *session;
-    AVCaptureVideoOrientation orientation;
     AVCaptureDeviceInput *videoInput;
-    AVCaptureVideoPreviewLayer *previewLayer;
+
     //still image
     AVCaptureStillImageOutput *stillImageOutput;
     //video record
@@ -34,13 +33,12 @@
 -(id)init
 {
     self = [super init];
-
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
     [notificationCenter addObserver:self selector:@selector(onDeviceConnected:) name:AVCaptureDeviceWasConnectedNotification object:nil];
     [notificationCenter addObserver:self selector:@selector(onDeviceDisconnected:) name:AVCaptureDeviceWasDisconnectedNotification object:nil];
-    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
-    [notificationCenter addObserver:self selector:@selector(deviceOrientationDidChange:) name:UIDeviceOrientationDidChangeNotification object:nil];
-    orientation = AVCaptureVideoOrientationPortrait;
+//    [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+//    [notificationCenter addObserver:self selector:@selector(deviceOrientationDidChange:) name:UIDeviceOrientationDidChangeNotification object:nil];
+    self.orientation = AVCaptureVideoOrientationPortrait;
     
     session = [[AVCaptureSession alloc] init];
     
@@ -72,23 +70,23 @@
 }
 - (void)setPreviewLayerConnectionEnable:(BOOL)enable
 {
-    previewLayer.connection.enabled = enable;
+    _previewLayer.connection.enabled = enable;
     
 }
 - (void)setPreviewView:(UIView*) view
 {
-    if (previewLayer) {
-        [previewLayer removeFromSuperlayer];
+    if (_previewLayer) {
+        [_previewLayer removeFromSuperlayer];
     }
     else {
-        previewLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSession:session];        
+        _previewLayer = [[AVCaptureVideoPreviewLayer alloc] initWithSession:session];
     }
 
     CALayer *viewLayer = [view layer];
     [viewLayer setMasksToBounds:YES];
     
     CGRect bounds = [view bounds];
-    [previewLayer setFrame:bounds];
+    [_previewLayer setFrame:bounds];
     
 
     
@@ -99,15 +97,15 @@
 //    if ([previewLayer isOrientationSupported]) {
 //        [previewLayer setOrientation:AVCaptureVideoOrientationPortrait];
 //    }
-    [previewLayer setVideoGravity:AVLayerVideoGravityResizeAspectFill];
+    [_previewLayer setVideoGravity:AVLayerVideoGravityResizeAspectFill];
     
-    [viewLayer insertSublayer:previewLayer below:[[viewLayer sublayers] objectAtIndex:0]];
+    [viewLayer insertSublayer:_previewLayer below:[[viewLayer sublayers] objectAtIndex:0]];
     
 
 }
 - (void)setPreviewLayerFrame:(CGRect)rect
 {
-    previewLayer.frame = rect;
+    _previewLayer.frame = rect;
 }
 - (UIView*) createPreviewViewWithSize:(CGSize)size;
 {
@@ -231,7 +229,7 @@
     }
     AVCaptureConnection *videoConnection = [self connectionWithMediaType:AVMediaTypeVideo fromConnections:[movieFileOutput connections]];
     if ([videoConnection isVideoOrientationSupported])
-        [videoConnection setVideoOrientation:orientation];
+        [videoConnection setVideoOrientation:self.orientation];
     
     [movieFileOutput startRecordingToOutputFileURL:outputFileURL recordingDelegate:self];
 
@@ -246,7 +244,7 @@
 {
     AVCaptureConnection *stillImageConnection = [self connectionWithMediaType:AVMediaTypeVideo fromConnections:[stillImageOutput connections]];
     if ([stillImageConnection isVideoOrientationSupported])
-        [stillImageConnection setVideoOrientation:orientation];
+        [stillImageConnection setVideoOrientation:self.orientation];
     
     [stillImageOutput captureStillImageAsynchronouslyFromConnection:stillImageConnection completionHandler:^(CMSampleBufferRef imageDataSampleBuffer, NSError *error) {
             if (imageDataSampleBuffer != NULL) {
@@ -491,25 +489,46 @@
         [self.delegate onIPaAVCamControllerDeviceConfigurationChanged:self];
     }
 }
-
-// Keep track of current device orientation so it can be applied to movie recordings and still image captures
-- (void)deviceOrientationDidChange:(NSNotification*)noti
+- (void)setOrientationWithDeviceOrientation:(UIDeviceOrientation)deviceOrientation
 {
-	UIDeviceOrientation deviceOrientation = [[UIDevice currentDevice] orientation];
+    switch (deviceOrientation) {
+        case UIDeviceOrientationPortrait:
+            self.orientation = AVCaptureVideoOrientationPortrait;
+            break;
+        case UIDeviceOrientationPortraitUpsideDown:
+            self.orientation = AVCaptureVideoOrientationPortraitUpsideDown;
+            break;
+        case UIDeviceOrientationLandscapeLeft:
+            self.orientation = AVCaptureVideoOrientationLandscapeRight;
+            break;
+        case UIDeviceOrientationLandscapeRight:
+            self.orientation = AVCaptureVideoOrientationLandscapeLeft;
+        default:
+            break;
+    }
     
-	if (deviceOrientation == UIDeviceOrientationPortrait)
-		orientation = AVCaptureVideoOrientationPortrait;
-	else if (deviceOrientation == UIDeviceOrientationPortraitUpsideDown)
-		orientation = AVCaptureVideoOrientationPortraitUpsideDown;
-	
-	// AVCapture and UIDevice have opposite meanings for landscape left and right (AVCapture orientation is the same as UIInterfaceOrientation)
-	else if (deviceOrientation == UIDeviceOrientationLandscapeLeft)
-		orientation = AVCaptureVideoOrientationLandscapeRight;
-	else if (deviceOrientation == UIDeviceOrientationLandscapeRight)
-		orientation = AVCaptureVideoOrientationLandscapeLeft;
-	
-	// Ignore device orientations for which there is no corresponding still image orientation (e.g. UIDeviceOrientationFaceUp)
 }
+//// Keep track of current device orientation so it can be applied to movie recordings and still image captures
+//- (void)deviceOrientationDidChange:(NSNotification*)noti
+//{
+//    if (!self.enableOrientationDetect) {
+//        return;
+//    }
+//	UIDeviceOrientation deviceOrientation = [[UIDevice currentDevice] orientation];
+//    if (deviceOrientation == UIDeviceOrientationPortrait)
+//        self.orientation = AVCaptureVideoOrientationPortrait;
+//    else if (deviceOrientation == UIDeviceOrientationPortraitUpsideDown)
+//        self.orientation = AVCaptureVideoOrientationPortraitUpsideDown;
+//    
+//    // AVCapture and UIDevice have opposite meanings for landscape left and right (AVCapture orientation is the same as UIInterfaceOrientation)
+//    else if (deviceOrientation == UIDeviceOrientationLandscapeLeft)
+//        self.orientation = AVCaptureVideoOrientationLandscapeRight;
+//    else if (deviceOrientation == UIDeviceOrientationLandscapeRight)
+//        self.orientation = AVCaptureVideoOrientationLandscapeLeft;
+//    
+//
+//		// Ignore device orientations for which there is no corresponding still image orientation (e.g. UIDeviceOrientationFaceUp)
+//}
 
 #pragma mark - AVCaptureFileOutputDelegate
 - (void)                     captureOutput:(AVCaptureFileOutput *)captureOutput
