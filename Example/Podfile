@@ -1,0 +1,11 @@
+use_frameworks!
+
+target 'IPaAVCamera_Example' do
+  pod 'IPaAVCamera', :path => '../'
+
+  target 'IPaAVCamera_Tests' do
+    inherit! :search_paths
+
+    pod 'FBSnapshotTestCase'
+  end
+end

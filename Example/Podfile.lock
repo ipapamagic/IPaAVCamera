@@ -1,0 +1,23 @@
+PODS:
+  - FBSnapshotTestCase (2.1.4):
+    - FBSnapshotTestCase/SwiftSupport (= 2.1.4)
+  - FBSnapshotTestCase/Core (2.1.4)
+  - FBSnapshotTestCase/SwiftSupport (2.1.4):
+    - FBSnapshotTestCase/Core
+  - IPaAVCamera (0.1.0)
+
+DEPENDENCIES:
+  - FBSnapshotTestCase
+  - IPaAVCamera (from `../`)
+
+EXTERNAL SOURCES:
+  IPaAVCamera:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  FBSnapshotTestCase: '094f9f314decbabe373b87cc339bea235a63e07a'
+  IPaAVCamera: be6362c97b3f8126c7856ecfb71b07494a76c28b
+
+PODFILE CHECKSUM: 714b0f03be6f287fdd0a5d881168c6011fa9055e
+
+COCOAPODS: 1.2.1

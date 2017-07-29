@@ -1,6 +1,6 @@
 //
-//  IPaAVCamController.swift
-//  IPaAVCamController
+//  IPaAVCamera.swift
+//  IPaAVCamera
 //
 //  Created by IPa Chen on 2015/7/9.
 //  Copyright (c) 2015年 A Magic Studio. All rights reserved.
@@ -10,18 +10,18 @@ import Foundation
 import AVFoundation
 import UIKit
 
-class IPaAVCamController :NSObject{
-    var cameraCount:Int {
+open class IPaAVCamera :NSObject{
+    open var cameraCount:Int {
         get {
             return AVCaptureDevice.devices(withMediaType: AVMediaTypeVideo).count
         }
     }
-    var minCount:Int {
+    open var minCount:Int {
         get {
             return AVCaptureDevice.devices(withMediaType: AVMediaTypeAudio).count
         }
     }
-    var isRecording:Bool {
+    open var isRecording:Bool {
         get {
             if let movieFileOutput = movieFileOutput {
                 return movieFileOutput.isRecording
@@ -53,7 +53,7 @@ class IPaAVCamController :NSObject{
     var stillImageOutput:AVCaptureStillImageOutput?
     
     var backgroundRecordingID:UIBackgroundTaskIdentifier?
-    var canWorking:Bool {
+    open var canWorking:Bool {
         get {
             return videoInput != nil
         }
@@ -81,7 +81,7 @@ class IPaAVCamController :NSObject{
         }
 
     }
-    override init (){
+    public override init (){
         super.init()
 //        let notificationCenter = NSNotificationCenter.defaultCenter()
 //        deviceConnectedObserver = notificationCenter.addObserverForName(AVCaptureDeviceWasConnectedNotification, object: nil, queue: NSOperationQueue.mainQueue(), usingBlock: {
@@ -117,7 +117,7 @@ class IPaAVCamController :NSObject{
 //                    
 //                }
 //                if let delegate = self.delegate {
-//                    delegate.onIPaAVCamControllerDeviceConfigurationChanged(self)
+//                    delegate.onIPaAVCameraDeviceConfigurationChanged(self)
 //                }
 //            }
 //        })
@@ -139,7 +139,7 @@ class IPaAVCamController :NSObject{
 //
 //                }
 //                if let delegate = self.delegate {
-//                    delegate.onIPaAVCamControllerDeviceConfigurationChanged(self)
+//                    delegate.onIPaAVCameraDeviceConfigurationChanged(self)
 //                }
 //            }
 //        })
