@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'IPaAVCamera'
-  s.version          = '1.0'
+  s.version          = '2.0'
   s.summary          = 'A short description of IPaAVCamera.'
 
 # This description is used to generate tags and improve search results.
