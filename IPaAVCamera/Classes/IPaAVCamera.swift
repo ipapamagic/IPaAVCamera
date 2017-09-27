@@ -193,7 +193,7 @@ open class IPaAVCamera :NSObject{
     }
 
     
-    open func setPreviewView(_ view:UIView,videoGravity:String) {
+    open func setPreviewView(_ view:UIView,videoGravity:AVLayerVideoGravity) {
         if let _previewLayer = _previewLayer {
             _previewLayer.removeFromSuperlayer()
         }
@@ -206,14 +206,14 @@ open class IPaAVCamera :NSObject{
         _previewLayer!.frame = viewLayer.bounds
         _previewLayer?.backgroundColor = UIColor.black.cgColor
         
-        _previewLayer!.videoGravity = AVLayerVideoGravity(rawValue: videoGravity)
+        _previewLayer!.videoGravity = videoGravity
         viewLayer.addSublayer(previewLayer!)
         
     }
     open func createPreviewView(_ size:CGSize) -> UIView
     {
         let view = UIView(frame: CGRect(origin: CGPoint.zero, size: size))
-        setPreviewView(view,videoGravity:AVLayerVideoGravity.resizeAspectFill.rawValue)
+        setPreviewView(view,videoGravity:AVLayerVideoGravity.resizeAspectFill)
         return view;
     }
     open func setupCaptureStillImage(_ cameraPosition:AVCaptureDevice.Position, error:NSErrorPointer?)
