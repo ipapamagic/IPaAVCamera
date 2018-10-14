@@ -8,9 +8,9 @@
 
 Pod::Spec.new do |s|
   s.name             = 'IPaAVCamera'
-  s.version          = '2.0'
+  s.version          = '2.1'
   s.summary          = 'A short description of IPaAVCamera.'
-
+  s.swift_version    = '4.2'
 # This description is used to generate tags and improve search results.
 #   * Think: What does it do? Why did you write it? What is the focus?
 #   * Try to keep it short, snappy and to the point.
@@ -39,8 +39,5 @@ TODO: Add long description of the pod here.
   # s.public_header_files = 'Pod/Classes/**/*.h'
   # s.frameworks = 'UIKit', 'MapKit'
   # s.dependency 'AFNetworking', '~> 2.3'
-    s.xcconfig = {
-        "SWIFT_VERSION" => "4.0",
-        "SWIFT_SWIFT3_OBJC_INFERENCE" => "off"
-    }
+  
 end
