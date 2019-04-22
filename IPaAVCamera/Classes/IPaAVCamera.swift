@@ -336,7 +336,7 @@ open class IPaAVCamera :NSObject{
                 }
             }
         
-            if let videoConnection = connectionWithMediaType(AVMediaType.video.rawValue, connections: movieFileOutput.connections as [AnyObject]!) {
+            if let videoConnection = connectionWithMediaType(AVMediaType.video.rawValue, connections: movieFileOutput.connections as [AnyObject]?) {
             
                 if videoConnection.isVideoOrientationSupported {
                     videoConnection.videoOrientation = self.orientation
@@ -354,7 +354,7 @@ open class IPaAVCamera :NSObject{
     }
     open func captureStillImageData(_ complete:@escaping (Data)->()) {
         if let stillImageOutput = stillImageOutput {
-            if let stillImageConnection = connectionWithMediaType(AVMediaType.video.rawValue, connections: stillImageOutput.connections as [AnyObject]!) {
+            if let stillImageConnection = connectionWithMediaType(AVMediaType.video.rawValue, connections: stillImageOutput.connections as [AnyObject]?) {
                 
                 if stillImageConnection.isVideoOrientationSupported {
                     stillImageConnection.videoOrientation = orientation
