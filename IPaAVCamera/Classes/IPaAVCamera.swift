@@ -11,16 +11,28 @@ import AVFoundation
 import UIKit
 
 open class IPaAVCamera :NSObject{
+    var orientationObserver:NSObjectProtocol?
+    var cameras:[AVCaptureDevice] {
+        var deviceTypes = [AVCaptureDevice.DeviceType]()
+        if #available(iOS 13.0, *) {
+            deviceTypes = [.builtInDualCamera,.builtInDualWideCamera,.builtInTelephotoCamera,.builtInTripleCamera,.builtInTrueDepthCamera,.builtInUltraWideCamera,.builtInWideAngleCamera]
+        } else {
+            // Fallback on earlier versions
+            deviceTypes = [.builtInDualCamera,.builtInTelephotoCamera]
+        }
+        
+        let deviceDescoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: deviceTypes,
+                                                                              mediaType: AVMediaType.video,
+                                                                              position: AVCaptureDevice.Position.unspecified)
+
+        return deviceDescoverySession.devices
+    }
     open var cameraCount:Int {
         get {
-            return AVCaptureDevice.devices(for: AVMediaType.video).count
+            return self.cameras.count
         }
     }
-    open var minCount:Int {
-        get {
-            return AVCaptureDevice.devices(for: AVMediaType.audio).count
-        }
-    }
+    
     open var isRecording:Bool {
         get {
             if let movieFileOutput = movieFileOutput {
@@ -29,7 +41,7 @@ open class IPaAVCamera :NSObject{
             return false
         }
     }
-    
+//    lazy var outputSetting = AVCapturePhotoSettings(format: [AVVideoCodecKey:AVVideoCodecType.jpeg])
     var movieFileOutput:AVCaptureMovieFileOutput?
     var _orientation:AVCaptureVideoOrientation = .portrait
     open var orientation:AVCaptureVideoOrientation {
@@ -50,7 +62,7 @@ open class IPaAVCamera :NSObject{
     }()
     var audioInput:AVCaptureDeviceInput?
     var videoInput:AVCaptureDeviceInput?
-    var stillImageOutput:AVCaptureStillImageOutput?
+    var photoOutput:AVCapturePhotoOutput?
     
     var backgroundRecordingID:UIBackgroundTaskIdentifier?
     open var canWorking:Bool {
@@ -76,85 +88,27 @@ open class IPaAVCamera :NSObject{
     // Find and return an audio device, returning nil if one is not found
     var audioDevice:AVCaptureDevice? {
         get {
-            let devices = AVCaptureDevice.devices(for: AVMediaType.audio)
+            let deviceDescoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInMicrophone],
+                                                                                  mediaType: AVMediaType.audio,
+                                                                                  position: AVCaptureDevice.Position.unspecified)
+            let devices = deviceDescoverySession.devices
             return devices.first
         }
 
     }
+    var capturePhotoDataCallback:((Data) -> ())?
+    public var flashMode:AVCaptureDevice.FlashMode = .auto
+    
     public override init (){
         super.init()
-//        let notificationCenter = NSNotificationCenter.defaultCenter()
-//        deviceConnectedObserver = notificationCenter.addObserverForName(AVCaptureDeviceWasConnectedNotification, object: nil, queue: NSOperationQueue.mainQueue(), usingBlock: {
-//            noti in
-//            if let device:AVCaptureDevice = noti.object as? AVCaptureDevice {
-//                var sessionHasDeviceWithMatchingMediaType:Bool = false
-//                var deviceMediaType:String?
-//                
-//                if device.hasMediaType(AVMediaTypeAudio) {
-//                    deviceMediaType = AVMediaTypeAudio
-//                }
-//                else if device.hasMediaType(AVMediaTypeVideo) {
-//                    deviceMediaType = AVMediaTypeVideo
-//                }
-//                if let deviceMediaType = deviceMediaType {
-//                    for input in self.session.inputs {
-//                        if let inputDevice:AVCaptureDeviceInput = input as? AVCaptureDeviceInput {
-//                            if inputDevice.device.hasMediaType(deviceMediaType) {
-//                                sessionHasDeviceWithMatchingMediaType = true
-//                                break
-//                            }
-//                        }
-//                    }
-//
-//                    if !sessionHasDeviceWithMatchingMediaType {
-//                        var error:NSError?
-//                        let input = AVCaptureDeviceInput.deviceInputWithDevice(device, error: &error) as! AVCaptureDeviceInput
-//                        if self.session.canAddInput(input) {
-//                            self.session.addInput(input)
-//                        }
-//
-//                    }
-//                    
-//                }
-//                if let delegate = self.delegate {
-//                    delegate.onIPaAVCameraDeviceConfigurationChanged(self)
-//                }
-//            }
-//        })
-//        deviceDisconnectObserver = notificationCenter.addObserverForName(AVCaptureDeviceWasDisconnectedNotification, object: nil, queue: NSOperationQueue.mainQueue(), usingBlock: {
-//            noti in
-//            if let device:AVCaptureDevice = noti.object as? AVCaptureDevice {
-//                if device.hasMediaType(AVMediaTypeAudio) {
-//                    if let audioInput = self.audioInput {
-//                        self.session.removeInput(audioInput)
-//                        self.audioInput = nil
-//                    }
-//
-//                }
-//                else if device.hasMediaType(AVMediaTypeVideo) {
-//                    if let videoInput = self.videoInput {
-//                        self.session.removeInput(videoInput)
-//                        self.videoInput = nil
-//                    }
-//
-//                }
-//                if let delegate = self.delegate {
-//                    delegate.onIPaAVCameraDeviceConfigurationChanged(self)
-//                }
-//            }
-//        })
+
     }
     deinit {
-//        if let deviceConnectedObserver = deviceConnectedObserver {
-//            NSNotificationCenter.defaultCenter().removeObserver(deviceConnectedObserver)
-//        }
-//        if let deviceDisconnectedObserver = deviceDisconnectObserver {
-//             NSNotificationCenter.defaultCenter().removeObserver(deviceDisconnectedObserver)
-//        }
+
         session.stopRunning()
         videoInput = nil;
         audioInput = nil;
-        stillImageOutput = nil;
+        photoOutput = nil;
 
     }
     open func setupCamera(_ position:AVCaptureDevice.Position,error:NSErrorPointer) {
@@ -192,7 +146,28 @@ open class IPaAVCamera :NSObject{
         }
     }
 
-    
+    open func setPreview(_ enable:Bool) {
+        if let previewLayer = self.previewLayer {
+            if let connection = previewLayer.connection {
+                connection.isEnabled = enable
+            }
+        }
+    }
+    open func startObserveDeviceOrientation() {
+        UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+
+        orientationObserver = NotificationCenter.default.addObserver(forName: UIDevice.orientationDidChangeNotification, object: nil, queue: OperationQueue.main, using: {
+            noti in
+            let deviceOrientation = UIDevice.current.orientation
+            self.setOrientationFrom(deviceOrientation)
+        })
+    }
+    open func stopObserveDeviceOrientation() {
+        UIDevice.current.endGeneratingDeviceOrientationNotifications()
+        if let orientationObserver = orientationObserver {
+            NotificationCenter.default.removeObserver(orientationObserver)
+        }
+    }
     open func setPreviewView(_ view:UIView,videoGravity:AVLayerVideoGravity) {
         if let _previewLayer = _previewLayer {
             _previewLayer.removeFromSuperlayer()
@@ -216,7 +191,7 @@ open class IPaAVCamera :NSObject{
         setPreviewView(view,videoGravity:AVLayerVideoGravity.resizeAspectFill)
         return view;
     }
-    open func setupCaptureStillImage(_ cameraPosition:AVCaptureDevice.Position, error:NSErrorPointer?)
+    open func setupCapturePhoto(_ cameraPosition:AVCaptureDevice.Position, error:NSErrorPointer?)
     {
         session.stopRunning()
         if movieFileOutput != nil {
@@ -243,12 +218,13 @@ open class IPaAVCamera :NSObject{
             }
         }
 
-        if stillImageOutput == nil {
-            stillImageOutput = AVCaptureStillImageOutput()
-            stillImageOutput?.outputSettings = [AVVideoCodecKey:AVVideoCodecJPEG]
+        if photoOutput == nil {
+            photoOutput = AVCapturePhotoOutput()
+            
+//            photoOutput?.photoSettingsForSceneMonitoring = self.outputSetting
         }
-        if session.canAddOutput(stillImageOutput!) {
-            session.addOutput(stillImageOutput!)
+        if session.canAddOutput(photoOutput!) {
+            session.addOutput(photoOutput!)
         }
         
         session.startRunning()
@@ -352,37 +328,29 @@ open class IPaAVCamera :NSObject{
     {
         movieFileOutput?.stopRecording()
     }
-    open func captureStillImageData(_ complete:@escaping (Data)->()) {
-        if let stillImageOutput = stillImageOutput {
-            if let stillImageConnection = connectionWithMediaType(AVMediaType.video.rawValue, connections: stillImageOutput.connections as [AnyObject]?) {
+    open func capturePhotoData(_ complete:@escaping (Data)->()) {
+        if let photoOutput = photoOutput {
+            if let photoConnection = connectionWithMediaType(AVMediaType.video.rawValue, connections: photoOutput.connections as [AnyObject]?) {
                 
-                if stillImageConnection.isVideoOrientationSupported {
-                    stillImageConnection.videoOrientation = orientation
-                    stillImageOutput.captureStillImageAsynchronously(from: stillImageConnection, completionHandler: {
-                        imageDataSampleBuffer,error in
-                        let imageData =  AVCaptureStillImageOutput.jpegStillImageNSDataRepresentation(imageDataSampleBuffer!)
-                        complete(imageData!)
-                    })
+                if photoConnection.isVideoOrientationSupported {
+                    photoConnection.videoOrientation = orientation
+                    self.capturePhotoDataCallback = complete
+                    let setting = AVCapturePhotoSettings()
+                    setting.flashMode = self.flashMode
+                    photoOutput.capturePhoto(with: setting, delegate: self)
+                    
+                    
                 }
                 
             }
             
         }
     }
-    open func captureStillImage(_ complete:@escaping (UIImage)->()) {
-        captureStillImageData({
-            imageData in
-            if let image = UIImage(data: imageData) {
-                complete(image)
-            }
-            
-        })
-    }
     // Toggle between the front and back camera, if both are present.
     open func toggleCamera() -> Bool {
         if let videoInput = videoInput {
-            let cameraCount = AVCaptureDevice.devices(for: AVMediaType.video).count
-            if cameraCount > 1 {
+            
+            if self.cameraCount > 1 {
                 //var error:NSError?
                 var newVideoInput:AVCaptureDeviceInput?
                 let position:AVCaptureDevice.Position = videoInput.device.position
@@ -410,21 +378,6 @@ open class IPaAVCamera :NSObject{
         return false
     }
 // MARK:Camera Properties
-    open func setCamera(_ position:AVCaptureDevice.Position,flashMode:AVCaptureDevice.FlashMode)
-    {
-        if let camera = getCamera(position) {
-            if camera.hasFlash {
-                do {
-                    try camera.lockForConfiguration()
-                    if camera.isFlashModeSupported(flashMode) {
-                        camera.flashMode = flashMode
-                    }
-                    camera.unlockForConfiguration()
-                } catch _ {
-                }
-            }
-        }
-    }
     
     open func setCamera(_ position:AVCaptureDevice.Position,torchMode:AVCaptureDevice.TorchMode) {
         if let camera = getCamera(position) {
@@ -440,12 +393,7 @@ open class IPaAVCamera :NSObject{
             }
         }
     }
-    open func getCameraFlashMode(_ position:AVCaptureDevice.Position) -> AVCaptureDevice.FlashMode {
-        if let camera = getCamera(position) {
-            return camera.flashMode
-        }
-        return .off
-    }
+    
     open func getCameraTorchMode(_ position:AVCaptureDevice.Position) -> AVCaptureDevice.TorchMode {
         if let camera = getCamera(position) {
             return camera.torchMode
@@ -486,19 +434,13 @@ open class IPaAVCamera :NSObject{
             break
         }
         
-    
+        self.previewLayer?.connection?.videoOrientation = _orientation
     }
 //MARK : private
     func getCamera(_ position:AVCaptureDevice.Position) -> AVCaptureDevice? {
-        let devices = AVCaptureDevice.devices(for: AVMediaType.video)
-        
-        for device in devices {
-            if (device.position == position) {
-                return device;
-            }
+        return self.cameras.first { device in
+            return device.position == position
         }
-        return nil;
-        
     }
 
     fileprivate func connectionWithMediaType(_ mediaType:String, connections:[AnyObject]!) -> AVCaptureConnection?
@@ -517,4 +459,14 @@ open class IPaAVCamera :NSObject{
         return nil;
     }
     
+}
+extension IPaAVCamera:AVCapturePhotoCaptureDelegate
+{
+    public func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
+        
+        if let callback = self.capturePhotoDataCallback,let data = photo.fileDataRepresentation() {
+            callback(data)
+            self.capturePhotoDataCallback = nil
+        }
+    }
 }
