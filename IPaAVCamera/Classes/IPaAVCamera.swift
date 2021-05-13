@@ -9,7 +9,7 @@
 import Foundation
 import AVFoundation
 import UIKit
-
+import IPaImageTool
 open class IPaAVCamera :NSObject{
     var orientationObserver:NSObjectProtocol?
     var cameras:[AVCaptureDevice] {
@@ -327,6 +327,44 @@ open class IPaAVCamera :NSObject{
     open func stopRecording()
     {
         movieFileOutput?.stopRecording()
+    }
+    open func capturePhoto(in rectOfPreview:CGRect,complete:@escaping(UIImage?)->()) {
+        self.capturePhotoData({
+            data in
+            guard let image = UIImage(data: data),let previewLayer = self.previewLayer else {
+                complete(nil)
+                return
+            }
+            
+            
+                
+            let rect = previewLayer.metadataOutputRectConverted(fromLayerRect: rectOfPreview)
+                
+            var outputMarkRect = CGRect.zero
+            switch (image.imageOrientation) {
+            case .right,.rightMirrored:
+                outputMarkRect.origin = CGPoint(x: 1 - rect.maxY, y: rect.origin.x)
+                outputMarkRect.size = CGSize(width: rect.height, height: rect.width)
+            
+            case .left,.leftMirrored:
+                outputMarkRect.origin = CGPoint(x: rect.origin.y, y: 1 - rect.maxX)
+                outputMarkRect.size = CGSize(width: rect.height, height: rect.width)
+            case .up,.upMirrored:
+                outputMarkRect = rect
+            case .down,.downMirrored:
+                outputMarkRect.size = rect.size
+                outputMarkRect.origin = CGPoint(x: 1 - rect.maxX, y: 1 - rect.maxY)
+            @unknown default:
+                break
+            }
+            outputMarkRect.origin.x *= image.size.width
+            outputMarkRect.origin.y *= image.size.height
+            outputMarkRect.size.width *= image.size.width
+            outputMarkRect.size.height *= image.size.height
+            
+            complete(image.image(cropRect: outputMarkRect))
+            
+        })
     }
     open func capturePhotoData(_ complete:@escaping (Data)->()) {
         if let photoOutput = photoOutput {
