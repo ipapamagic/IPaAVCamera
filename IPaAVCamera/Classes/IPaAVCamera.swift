@@ -157,11 +157,11 @@ open class IPaAVCamera :NSObject{
         setPreviewView(view,videoGravity:AVLayerVideoGravity.resizeAspectFill)
         return view;
     }
-    fileprivate func setupVideoInput(_ deviceTypes:[AVCaptureDevice.DeviceType]) throws {
+    fileprivate func setupVideoInput(_ deviceTypes:[AVCaptureDevice.DeviceType],position:AVCaptureDevice.Position) throws {
         if videoInput == nil {
             for (index,deviceType) in deviceTypes.enumerated() {
             
-                let cameraDevice = getCamera(deviceType)
+                let cameraDevice = getCamera(deviceType,position: position)
                 if let cameraDevice = cameraDevice {
                     do {
                         let input = try AVCaptureDeviceInput(device:cameraDevice)
@@ -193,7 +193,7 @@ open class IPaAVCamera :NSObject{
         }
         
     }
-    open func setupCapturePhoto(_ deviceTypes:[AVCaptureDevice.DeviceType],torchMode:AVCaptureDevice.TorchMode = .auto) throws
+    open func setupCapturePhoto(_ deviceTypes:[AVCaptureDevice.DeviceType],position:AVCaptureDevice.Position, torchMode:AVCaptureDevice.TorchMode = .auto) throws
     {
         session.stopRunning()
         if movieFileOutput != nil {
@@ -203,7 +203,7 @@ open class IPaAVCamera :NSObject{
             session.removeInput(audioInput!)
         }
         
-        try self.setupVideoInput(deviceTypes)
+        try self.setupVideoInput(deviceTypes,position: position)
         if let cameraDevice = self.activeDevice {
             if cameraDevice.hasTorch{
                 do {
@@ -224,7 +224,7 @@ open class IPaAVCamera :NSObject{
         
         session.startRunning()
     }
-    open func setupRecordVideo(_ deviceTypes:[AVCaptureDevice.DeviceType]) throws {
+    open func setupRecordVideo(_ deviceTypes:[AVCaptureDevice.DeviceType],position:AVCaptureDevice.Position) throws {
         session.stopRunning()
         if movieFileOutput == nil {
             movieFileOutput = AVCaptureMovieFileOutput()
@@ -252,7 +252,7 @@ open class IPaAVCamera :NSObject{
             if session.canAddInput(audioInput!) {
                 session.addInput(audioInput!)
             }
-            try self.setupVideoInput(deviceTypes)
+            try self.setupVideoInput(deviceTypes,position: position)
             
             for connection in movieFileOutput.connections {
                 for port in connection.inputPorts  {
@@ -275,7 +275,7 @@ open class IPaAVCamera :NSObject{
             let errorDict = [NSLocalizedDescriptionKey:
                 localizedDescription,NSLocalizedFailureReasonErrorKey:            localizedFailureReason]
             throw NSError(domain: "IPaAVCam", code: 0, userInfo: errorDict)
-            return
+            
         }
      
         //start running
@@ -352,9 +352,9 @@ open class IPaAVCamera :NSObject{
         self.capturePhoto(setting,complete:{
             photo in
             var resultImage:UIImage?
-            if let pixelBuffer = photo.pixelBuffer,let orientation = photo.metadata[kCGImagePropertyOrientation as String] as? NSNumber,let cgOrientation = CGImagePropertyOrientation(rawValue: orientation.uint32Value),let uiOrientation = UIImage.Orientation(rawValue: orientation.intValue) {
+            if let pixelBuffer = photo.pixelBuffer,let orientation = photo.metadata[kCGImagePropertyOrientation as String] as? NSNumber,let cgOrientation = CGImagePropertyOrientation(rawValue: orientation.uint32Value) {
                 var ciimage = CIImage(cvPixelBuffer: pixelBuffer).oriented(cgOrientation)
-                let rect = self.convertOutputRect(from:rectOfPreview,size:ciimage.extent.size,orientation: uiOrientation)
+                let rect = self.convertOutputRect(from:rectOfPreview,size:ciimage.extent.size,orientation: .up)
                 ciimage = ciimage.cropped(to: rect)
                 resultImage = ciimage.uiImage
             }
@@ -386,8 +386,8 @@ open class IPaAVCamera :NSObject{
     }
 // MARK:Camera Properties
     
-    open func getCameraTorchMode(_ deviceType:AVCaptureDevice.DeviceType) -> AVCaptureDevice.TorchMode {
-        if let camera = getCamera(deviceType) {
+    open func getCurrentCameraTorchMode() -> AVCaptureDevice.TorchMode {
+        if let camera = activeDevice {
             return camera.torchMode
         }
         return .off
@@ -429,8 +429,12 @@ open class IPaAVCamera :NSObject{
         self.previewLayer?.connection?.videoOrientation = _orientation
     }
 //MARK : private
-    func getCamera(_ deviceType:AVCaptureDevice.DeviceType) -> AVCaptureDevice? {
-        return self.cameras.first { $0.deviceType == deviceType }
+    func getCamera(_ deviceType:AVCaptureDevice.DeviceType,position:AVCaptureDevice.Position) -> AVCaptureDevice? {
+        return self.cameras.first {
+            camera in
+            return camera.deviceType == deviceType && camera.position == position
+            
+        }
     }
 
     fileprivate func connectionWithMediaType(_ mediaType:String, connections:[AnyObject]!) -> AVCaptureConnection?
