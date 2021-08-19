@@ -321,7 +321,7 @@ open class IPaAVCamera :NSObject{
     {
         movieFileOutput?.stopRecording()
     }
-    fileprivate func convertOutputRect(from rectOfPreview:CGRect,size:CGSize,orientation:UIImage.Orientation) -> CGRect {
+    fileprivate func convertOutputRect(from rectOfPreview:CGRect,size:CGSize,orientation:UIImage.Orientation,rectCallback:((CGRect)-> CGRect)? = nil) -> CGRect {
         let rect = self.previewLayer?.metadataOutputRectConverted(fromLayerRect: rectOfPreview) ?? .zero
             
         var outputMarkRect = CGRect.zero
@@ -345,21 +345,25 @@ open class IPaAVCamera :NSObject{
         outputMarkRect.origin.y *= size.height
         outputMarkRect.size.width *= size.width
         outputMarkRect.size.height *= size.height
+        if let rectCallback = rectCallback {
+            outputMarkRect = rectCallback(outputMarkRect)
+        }
         return outputMarkRect
         
     }
-    open func capturePhoto(in rectOfPreview:CGRect,setting:AVCapturePhotoSettings ,complete:@escaping(UIImage?)->()) {
+    open func capturePhoto(in rectOfPreview:CGRect,setting:AVCapturePhotoSettings, onHandleRealRect:((CGRect) -> CGRect)? = nil,complete:@escaping(UIImage?)->()) {
         self.capturePhoto(setting,complete:{
             photo in
             var resultImage:UIImage?
             if let pixelBuffer = photo.pixelBuffer,let orientation = photo.metadata[kCGImagePropertyOrientation as String] as? NSNumber,let cgOrientation = CGImagePropertyOrientation(rawValue: orientation.uint32Value) {
                 var ciimage = CIImage(cvPixelBuffer: pixelBuffer).oriented(cgOrientation)
-                let rect = self.convertOutputRect(from:rectOfPreview,size:ciimage.extent.size,orientation: .up)
+                let rect = self.convertOutputRect(from:rectOfPreview,size:ciimage.extent.size,orientation: .up,rectCallback: onHandleRealRect)
+                
                 ciimage = ciimage.cropped(to: rect)
                 resultImage = ciimage.uiImage
             }
             else if let data = photo.fileDataRepresentation(),let image = UIImage(data: data) {
-                let rect = self.convertOutputRect(from:rectOfPreview,size:image.size,orientation: image.imageOrientation)
+                let rect = self.convertOutputRect(from:rectOfPreview,size:image.size,orientation: image.imageOrientation,rectCallback: onHandleRealRect)
                 resultImage = image.image(cropRect: rect)
             }
             complete(resultImage)
