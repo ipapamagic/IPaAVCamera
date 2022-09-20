@@ -8,9 +8,9 @@
 
 Pod::Spec.new do |s|
   s.name             = 'IPaAVCamera'
-  s.version          = '3.0'
+  s.version          = '3.0.0'
   s.summary          = 'A short description of IPaAVCamera.'
-  s.swift_version    = '5.3'
+  s.swift_version    = '5.5'
 # This description is used to generate tags and improve search results.
 #   * Think: What does it do? Why did you write it? What is the focus?
 #   * Try to keep it short, snappy and to the point.
@@ -30,7 +30,7 @@ TODO: Add long description of the pod here.
 
   s.ios.deployment_target = '11.0'
 
-  s.source_files = 'IPaAVCamera/Classes/**/*'
+  s.source_files = 'Sources/IPaAVCamera/**/*'
   
   # s.resource_bundles = {
   #   'IPaAVCamera' => ['IPaAVCamera/Assets/*.png']
@@ -38,6 +38,6 @@ TODO: Add long description of the pod here.
 
   # s.public_header_files = 'Pod/Classes/**/*.h'
   # s.frameworks = 'UIKit', 'MapKit'
-  s.dependency 'IPaImageTool', '~> 2.4'
+  s.dependency 'IPaImageTool', '~> 2.6.0'
   
 end

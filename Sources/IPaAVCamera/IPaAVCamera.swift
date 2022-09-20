@@ -230,7 +230,7 @@ open class IPaAVCamera :NSObject{
             movieFileOutput = AVCaptureMovieFileOutput()
         }
         var videoConnection:AVCaptureConnection?
-        //var audioConnection:AVCaptureConnection?
+        var audioConnection:AVCaptureConnection?
         
         if let movieFileOutput = movieFileOutput {
             if session.canAddOutput(movieFileOutput) {
@@ -256,15 +256,13 @@ open class IPaAVCamera :NSObject{
             
             for connection in movieFileOutput.connections {
                 for port in connection.inputPorts  {
-                    if port.mediaType == AVMediaType.video {
+                    if port.mediaType == .video {
                         videoConnection = connection
                     }
-//                            else if port.mediaType == AVMediaTypeAudio {
-//                                audioConnection = connection
-//                            }
-                }
-                    
-                
+                    else if port.mediaType == .audio {
+                        audioConnection = connection
+                    }
+                }  
             }
         }
         
@@ -273,11 +271,17 @@ open class IPaAVCamera :NSObject{
             let localizedDescription = "Video recording unavailable"
             let localizedFailureReason = "Movies recorded on this device will only contain audio. They will be accessible through iTunes file sharing."
             let errorDict = [NSLocalizedDescriptionKey:
-                localizedDescription,NSLocalizedFailureReasonErrorKey:            localizedFailureReason]
-            throw NSError(domain: "IPaAVCam", code: 0, userInfo: errorDict)
+                localizedDescription,NSLocalizedFailureReasonErrorKey:localizedFailureReason]
+            throw NSError(domain: "IPaAVCamera", code: 0, userInfo: errorDict)
             
         }
-     
+        if audioConnection == nil || !(audioConnection?.isActive ?? false) {
+            let localizedDescription = "Audio recording unavailable"
+            let localizedFailureReason = "Movies recorded on this device will only contain video. They will be accessible through iTunes file sharing."
+            let errorDict = [NSLocalizedDescriptionKey:
+                localizedDescription,NSLocalizedFailureReasonErrorKey:localizedFailureReason]
+            throw NSError(domain: "IPaAVCamera", code: 0, userInfo: errorDict)
+        }
         //start running
         session.startRunning()
     }
@@ -311,8 +315,6 @@ open class IPaAVCamera :NSObject{
                     videoConnection.videoOrientation = self.orientation
                 }
                 movieFileOutput.startRecording(to: outputFileURL, recordingDelegate: delegate)
-                
-            
             }
         }
     }

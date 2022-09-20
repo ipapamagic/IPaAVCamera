@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "ipaimagetool",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/ipapamagic/IPaImageTool.git",
+      "state" : {
+        "revision" : "c9810bbd9d1c197bf195821fb290e0395fb15f8f",
+        "version" : "2.6.0"
+      }
+    }
+  ],
+  "version" : 2
+}
