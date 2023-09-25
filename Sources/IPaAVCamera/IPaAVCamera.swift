@@ -221,8 +221,10 @@ open class IPaAVCamera :NSObject{
         if session.canAddOutput(_photoOutput) {
             session.addOutput(_photoOutput)
         }
+        DispatchQueue.global(qos: .background).async {
+            self.session.startRunning()
+        }
         
-        session.startRunning()
     }
     open func setupRecordVideo(_ deviceTypes:[AVCaptureDevice.DeviceType],position:AVCaptureDevice.Position) throws {
         session.stopRunning()
