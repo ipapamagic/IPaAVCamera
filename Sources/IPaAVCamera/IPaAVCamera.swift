@@ -151,47 +151,83 @@ open class IPaAVCamera :NSObject{
         viewLayer.addSublayer(previewLayer!)
         
     }
+    open func startRunningSession() {
+        DispatchQueue.global(qos: .userInitiated).async {
+            self.session.startRunning()
+        }
+        
+    }
     open func createPreviewView(_ size:CGSize) -> UIView
     {
         let view = UIView(frame: CGRect(origin: CGPoint.zero, size: size))
         setPreviewView(view,videoGravity:AVLayerVideoGravity.resizeAspectFill)
         return view;
     }
-    fileprivate func setupVideoInput(_ deviceTypes:[AVCaptureDevice.DeviceType],position:AVCaptureDevice.Position) throws {
-        if videoInput == nil {
-            for (index,deviceType) in deviceTypes.enumerated() {
-            
-                let cameraDevice = getCamera(deviceType,position: position)
-                if let cameraDevice = cameraDevice {
-                    do {
-                        let input = try AVCaptureDeviceInput(device:cameraDevice)
-                        if session.canAddInput(input) {
-                            session.addInput(input)
-                            self.activeDevice = cameraDevice
-                            self.videoInput = input
-                            
-                            break
-                        }
-                    } catch let error as NSError {
-                        self.videoInput = nil
-                        self.activeDevice = nil
-                        if index == (deviceTypes.count - 1)
-                        {
-                            throw error
-                        }
-                    }
-                }
-                else if index == (deviceTypes.count - 1) {
-                    let localizedDescription = "Video Input init error";
-                    let localizedFailureReason = "Can not get Camera for types";
-                    let errorDict = [NSLocalizedDescriptionKey:localizedDescription,NSLocalizedFailureReasonErrorKey:localizedFailureReason]
-                    throw NSError(domain: "IPaAVCam", code: 0, userInfo: errorDict)
-                }
-          
+    fileprivate func setupVideoInput(_ device:AVCaptureDevice,position:AVCaptureDevice.Position) throws {
+        do {
+            let input = try AVCaptureDeviceInput(device:device)
+            if session.canAddInput(input) {
+                session.addInput(input)
+                self.activeDevice = device
+                self.videoInput = input
             }
-            
+        } catch let error as NSError {
+            self.videoInput = nil
+            self.activeDevice = nil
+            throw error
         }
         
+    }
+    open func setupVideoInput(_ deviceTypes:[AVCaptureDevice.DeviceType]? = nil,position:AVCaptureDevice.Position) throws {
+        guard videoInput == nil else {
+            return
+        }
+        guard let deviceTypes = deviceTypes else {
+            if let device = AVCaptureDevice.default(for: .video){
+                try self.setupVideoInput(device, position: position)
+            }
+            else {
+                let localizedDescription = "Video Input init error";
+                let localizedFailureReason = "Can not get Camera for types";
+                let errorDict = [NSLocalizedDescriptionKey:localizedDescription,NSLocalizedFailureReasonErrorKey:localizedFailureReason]
+                throw NSError(domain: "IPaAVCam", code: 0, userInfo: errorDict)
+            }
+            return
+        }
+            
+        for (index,deviceType) in deviceTypes.enumerated() {
+        
+            let cameraDevice = getCamera(deviceType,position: position)
+            if let cameraDevice = cameraDevice {
+                do {
+                    try setupVideoInput(cameraDevice, position: position)
+                    break
+                    
+                } catch let error as NSError {
+                    if index == (deviceTypes.count - 1)
+                    {
+                        throw error
+                    }
+                }
+            }
+            else if index == (deviceTypes.count - 1) {
+                let localizedDescription = "Video Input init error";
+                let localizedFailureReason = "Can not get Camera for types";
+                let errorDict = [NSLocalizedDescriptionKey:localizedDescription,NSLocalizedFailureReasonErrorKey:localizedFailureReason]
+                throw NSError(domain: "IPaAVCam", code: 0, userInfo: errorDict)
+            }
+      
+        }
+            
+        
+    }
+    open func setupCaptureMetadataOutput(_ types:[AVMetadataObject.ObjectType], delegate:AVCaptureMetadataOutputObjectsDelegate) {
+        let metadataOutput = AVCaptureMetadataOutput()
+        if self.session.canAddOutput(metadataOutput) {
+            self.session.addOutput(metadataOutput)
+            metadataOutput.setMetadataObjectsDelegate(delegate, queue: DispatchQueue.main)
+            metadataOutput.metadataObjectTypes = types
+        }
     }
     open func setupCapturePhoto(_ deviceTypes:[AVCaptureDevice.DeviceType],position:AVCaptureDevice.Position, torchMode:AVCaptureDevice.TorchMode = .auto) throws
     {
@@ -220,9 +256,6 @@ open class IPaAVCamera :NSObject{
         
         if session.canAddOutput(_photoOutput) {
             session.addOutput(_photoOutput)
-        }
-        DispatchQueue.global(qos: .background).async {
-            self.session.startRunning()
         }
         
     }
@@ -284,8 +317,7 @@ open class IPaAVCamera :NSObject{
                 localizedDescription,NSLocalizedFailureReasonErrorKey:localizedFailureReason]
             throw NSError(domain: "IPaAVCamera", code: 0, userInfo: errorDict)
         }
-        //start running
-        session.startRunning()
+        
     }
     open func startRecording(_ delegate:AVCaptureFileOutputRecordingDelegate ,error:NSErrorPointer)
     {
